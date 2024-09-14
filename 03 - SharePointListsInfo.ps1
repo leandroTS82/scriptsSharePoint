@@ -3,11 +3,17 @@ Import-Module PnP.PowerShell
 
 # Parâmetros de Conexão
 $sitePai = "https://ltsconsultoria.sharepoint.com"
-$subSite = "/sites/CopiaSitePaiComSharegate" #inicie sempre com a /
+$subSite = "" #inicie sempre com a /,  se não tiver subsite deixe vazio ""
 $siteUrl = $sitePai + $subSite
 
-$outputFile = "./files/03 - $($subSite.TrimStart('/').Replace('/', '_'))SPListsInfo.json"
-$ignoredFile = "./files/03 - $($subSite.TrimStart('/').Replace('/', '_'))IgnoredItems.json"
+$outputDir = "./files"
+# Verificar se o diretório de saída existe, caso contrário, criá-lo
+if (-not (Test-Path -Path $outputDir)) {
+    New-Item -ItemType Directory -Path $outputDir
+}
+
+$outputFile = "$outputDir/03 - $($subSite.TrimStart('/').Replace('/', '_'))SPListsInfo.json"
+$ignoredFile = "$outputDir/03 - $($subSite.TrimStart('/').Replace('/', '_'))IgnoredItems.json"
 
 # Arrays de exclusão de listas e colunas
 $excludedLists = @("appdata", "appfiles", "SharePointHomeOrgLinks", "TaxonomyHiddenList", 
