@@ -2,8 +2,24 @@
 Import-Module PnP.PowerShell
 
 # Parâmetros de Conexão
-$siteUrl = "https://ltsconsultoria.sharepoint.com"
-$outputFile = "./files/03 - SharePointListsInfo.json"
+$sitePai = "https://ltsconsultoria.sharepoint.com"
+$subSite = "/sites/CopiaSitePaiComSharegate" #inicie sempre com a /
+$siteUrl = $sitePai + $subSite
+
+$outputFile = "./files/03 - $($subSite.TrimStart('/').Replace('/', '_'))SPListsInfo.json"
+$ignoredFile = "./files/03 - $($subSite.TrimStart('/').Replace('/', '_'))IgnoredItems.json"
+
+# Arrays de exclusão de listas e colunas
+$excludedLists = @("appdata", "appfiles", "SharePointHomeOrgLinks", "TaxonomyHiddenList", 
+                    "Galeria de Temas", "Lista de Informações sobre o Usuário", 
+                    "Galeria de Web Parts", "Galeria de Páginas Mestras", "Galeria de Soluções", "Aparências compostas", "Formulários Convertidos", "Web Template Extensions")  # Títulos ou InternalNames das listas a serem ignoradas
+$excludedColumns = @("_Emoji", "_ColorHex", "_ColorTag", "ComplianceAssetId", "_HasCopyDestinations", "_CopySource", "owshiddenversion")  # Títulos ou InternalNames das colunas a serem ignoradas
+
+# Arrays para armazenar listas e colunas ignoradas
+$ignoredListsFound = @()
+$ignoredListsNotFound = @()
+$ignoredColumnsFound = @()
+$ignoredColumnsNotFound = @()
 
 # Função para imprimir mensagens em cores
 function Write-Feedback {
@@ -58,6 +74,13 @@ try {
         Write-Feedback "Listas obtidas com sucesso." -Color "Green"
 
         foreach ($list in $lists) {
+            # Verificar se a lista está no array de exclusão
+            if ($excludedLists -contains $list.Title -or $excludedLists -contains $list.InternalName) {
+                $ignoredListsFound += $list.Title
+                Write-Feedback "Lista '$($list.Title)' ignorada." -Color "Yellow"
+                continue
+            }
+
             try {
                 # Obter informações da lista
                 $listTitle = $list.Title
@@ -73,6 +96,13 @@ try {
                 $columnsInfo = @()
 
                 foreach ($column in $listColumns) {
+                    # Verificar se a coluna está no array de exclusão
+                    if ($excludedColumns -contains $column.Title -or $excludedColumns -contains $column.InternalName) {
+                        $ignoredColumnsFound += $column.Title
+                        Write-Feedback "Coluna '$($column.Title)' ignorada." -Color "Yellow"
+                        continue
+                    }
+
                     $columnInfo = [PSCustomObject]@{
                         Title = $column.Title
                         InternalName = $column.InternalName
@@ -108,6 +138,20 @@ try {
         # Salvar as informações em um arquivo JSON
         $listInfo | ConvertTo-Json -Depth 5 | Out-File -FilePath $outputFile
         Write-Feedback "Informações das listas salvas em $outputFile" -Color "Green"
+
+        # Verificar listas e colunas não encontradas
+        $ignoredListsNotFound = $excludedLists | Where-Object { $_ -notin $ignoredListsFound }
+        $ignoredColumnsNotFound = $excludedColumns | Where-Object { $_ -notin $ignoredColumnsFound }
+
+        # Gerar arquivo JSON para listas e colunas ignoradas
+        $ignoredInfo = [PSCustomObject]@{
+            IgnoredListsFound = $ignoredListsFound
+            IgnoredListsNotFound = $ignoredListsNotFound
+            IgnoredColumnsFound = $ignoredColumnsFound
+            IgnoredColumnsNotFound = $ignoredColumnsNotFound
+        }
+        $ignoredInfo | ConvertTo-Json -Depth 5 | Out-File -FilePath $ignoredFile
+        Write-Feedback "Informações de listas e colunas ignoradas salvas em $ignoredFile" -Color "Green"
     } else {
         Write-Feedback "Nenhuma lista encontrada." -Color "Yellow"
     }
