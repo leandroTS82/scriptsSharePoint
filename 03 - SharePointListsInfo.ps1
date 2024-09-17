@@ -7,13 +7,16 @@ $subSite = "" #inicie sempre com a /,  se não tiver subsite deixe vazio ""
 $siteUrl = $sitePai + $subSite
 
 $outputDir = "./files"
+$fileSiteName = "_"  # Variável para identificação Exemplo "03 - {fileSiteName}AddedLists" para subsites deixe o "_"
+
 # Verificar se o diretório de saída existe, caso contrário, criá-lo
 if (-not (Test-Path -Path $outputDir)) {
     New-Item -ItemType Directory -Path $outputDir
 }
 
-$outputFile = "$outputDir/03 - $($subSite.TrimStart('/').Replace('/', '_'))SPListsInfo.json"
-$ignoredFile = "$outputDir/03 - $($subSite.TrimStart('/').Replace('/', '_'))IgnoredItems.json"
+$outputFile = "$outputDir/03 - $($subSite.TrimStart('/').Replace('/', '_'))$fileSiteName`SPListsInfo.json"
+$ignoredFile = "$outputDir/03 - $($subSite.TrimStart('/').Replace('/', '_'))$fileSiteName`IgnoredItems.json"
+$addedListsFile = "$outputDir/03 - $($subSite.TrimStart('/').Replace('/', '_'))$fileSiteName`AddedLists.json"  # Novo arquivo para listas adicionadas
 
 # Arrays de exclusão de listas e colunas
 $excludedLists = @("appdata", "appfiles", "SharePointHomeOrgLinks", "TaxonomyHiddenList", 
@@ -21,11 +24,12 @@ $excludedLists = @("appdata", "appfiles", "SharePointHomeOrgLinks", "TaxonomyHid
                     "Galeria de Web Parts", "Galeria de Páginas Mestras", "Galeria de Soluções", "Aparências compostas", "Formulários Convertidos", "Web Template Extensions")  # Títulos ou InternalNames das listas a serem ignoradas
 $excludedColumns = @("_Emoji", "_ColorHex", "_ColorTag", "ComplianceAssetId", "_HasCopyDestinations", "_CopySource", "owshiddenversion")  # Títulos ou InternalNames das colunas a serem ignoradas
 
-# Arrays para armazenar listas e colunas ignoradas
+# Arrays para armazenar listas e colunas ignoradas e adicionadas
 $ignoredListsFound = @()
 $ignoredListsNotFound = @()
 $ignoredColumnsFound = @()
 $ignoredColumnsNotFound = @()
+$addedLists = @()  # Novo array para armazenar listas adicionadas
 
 # Função para imprimir mensagens em cores
 function Write-Feedback {
@@ -136,6 +140,10 @@ try {
                     ItemCount = $listItemCount
                     Columns = $columnsInfo
                 }
+
+                # Adicionar a lista ao array de listas adicionadas
+                $addedLists += $listTitle
+
             } catch {
                 Write-Feedback "Erro ao processar a lista $($list.Title): $_" -Color "Red"
             }
@@ -158,6 +166,10 @@ try {
         }
         $ignoredInfo | ConvertTo-Json -Depth 5 | Out-File -FilePath $ignoredFile
         Write-Feedback "Informações de listas e colunas ignoradas salvas em $ignoredFile" -Color "Green"
+
+        # Gerar arquivo JSON para listas adicionadas
+        $addedLists | ConvertTo-Json -Depth 5 | Out-File -FilePath $addedListsFile
+        Write-Feedback "Listas adicionadas salvas em $addedListsFile" -Color "Green"
     } else {
         Write-Feedback "Nenhuma lista encontrada." -Color "Yellow"
     }
