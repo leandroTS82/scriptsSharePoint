@@ -2,8 +2,8 @@
 Import-Module PnP.PowerShell
 
 # Parâmetros de Conexão
-$sitePai = "https://ltsconsultoria.sharepoint.com"
-$subSite = "" #inicie sempre com a /,  se não tiver subsite deixe vazio ""
+$sitePai = "https://butterflygrowth.sharepoint.com"
+$subSite = "/sites/Agger_" #inicie sempre com a /,  se não tiver subsite deixe vazio ""
 $siteUrl = $sitePai + $subSite
 
 $outputDir = "./files"
