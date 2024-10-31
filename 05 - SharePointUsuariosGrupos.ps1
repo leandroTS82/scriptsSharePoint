@@ -1,5 +1,13 @@
 # Conecte-se ao site do SharePoint Online
-Connect-PnPOnline -Url "https://ltsconsultoria.sharepoint.com" -UseWebLogin
+Connect-PnPOnline -Url "https://butterflygrowth.sharepoint.com" -UseWebLogin
+
+# Diretório para salvar os arquivos JSON
+$outputDirectory = ".\files\05json"
+
+# Crie o diretório de saída, caso ele não exista
+if (!(Test-Path -Path $outputDirectory)) {
+    New-Item -ItemType Directory -Path $outputDirectory
+}
 
 # Obtenha todos os usuários do site
 try {
@@ -16,9 +24,13 @@ try {
     }
 
     # Converta a lista de usuários para JSON e salve em um arquivo
-    $userList | ConvertTo-Json -Depth 3 | Out-File -FilePath "files/05 - SharePointUsuarios.json" -Encoding UTF8
-
+    $userList | ConvertTo-Json -Depth 3 | Out-File -FilePath "$outputDirectory\05 - SharePointUsuarios.json" -Encoding UTF8
     Write-Output "Arquivo JSON '05 - SharePointUsuarios.json' criado com sucesso."
+
+    # Filtra usuários com email contendo '@' e cria um novo JSON
+    $filteredUserList = $userList | Where-Object { $_.Email -match "@" }
+    $filteredUserList | ConvertTo-Json -Depth 3 | Out-File -FilePath "$outputDirectory\05 - SharePointUsuarios_ComEmail.json" -Encoding UTF8
+    Write-Output "Arquivo JSON '05 - SharePointUsuarios_ComEmail.json' criado com sucesso contendo apenas usuários com email."
 }
 catch {
     Write-Error "Erro ao obter usuários do SharePoint: $_"
@@ -38,8 +50,7 @@ try {
     }
 
     # Converta a lista de grupos para JSON e salve em um arquivo
-    $groupList | ConvertTo-Json -Depth 3 | Out-File -FilePath "files/05 - SharePointGrupos.json" -Encoding UTF8
-
+    $groupList | ConvertTo-Json -Depth 3 | Out-File -FilePath "$outputDirectory\05 - SharePointGrupos.json" -Encoding UTF8
     Write-Output "Arquivo JSON '05 - SharePointGrupos.json' criado com sucesso."
 }
 catch {
