@@ -4,9 +4,9 @@ from office365.sharepoint.client_context import ClientContext
 from office365.runtime.auth.user_credential import UserCredential
 
 # Configurações do SharePoint
-site_url = "https://butterflygrowth.sharepoint.com"
+site_url = "***"
 username = "leandro.silva@ButterflyGrowth.onmicrosoft.com"  # Substitua pelo seu email
-password = "DlA685947"               # Substitua pela sua senha
+password = "****"               # Substitua pela sua senha
 
 # Diretório para salvar os arquivos JSON
 output_directory = "./files/07json"
