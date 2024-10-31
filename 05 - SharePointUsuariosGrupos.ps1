@@ -1,5 +1,5 @@
 # Conecte-se ao site do SharePoint Online
-Connect-PnPOnline -Url "https://butterflygrowth.sharepoint.com" -UseWebLogin
+Connect-PnPOnline -Url "https://butterflygrowth.sharepoint.com/sites/Atrax" -UseWebLogin
 
 # Diretório para salvar os arquivos JSON
 $outputDirectory = ".\files\05json"
@@ -9,12 +9,21 @@ if (!(Test-Path -Path $outputDirectory)) {
     New-Item -ItemType Directory -Path $outputDirectory
 }
 
-# Obtenha todos os usuários do site
+# Obtenha informações do site
 try {
-    # Obtenha todos os usuários
-    $users = Get-PnPUser
+    $site = Get-PnPWeb
+    $siteUrl = $site.Url
+    $siteName = $site.Title
+    $relativeUrl = $siteUrl -replace "https://butterflygrowth.sharepoint.com", ""  # Remove a parte da URL base
+    $siteFolderName = if ($relativeUrl -like "*/") { $relativeUrl.TrimEnd('/') } else { $relativeUrl.Split('/')[0] }
 
-    # Crie uma lista para armazenar os dados dos usuários
+    # Salve o nome do site ou subsite em um arquivo .txt
+    $siteInfoFilePath = Join-Path -Path $outputDirectory -ChildPath "NomeDoSite.txt"
+    $siteName | Out-File -FilePath $siteInfoFilePath -Encoding UTF8
+    Write-Output "Arquivo de texto 'NomeDoSite.txt' criado com sucesso com o nome do site: '$siteName'."
+
+    # Obtenha todos os usuários do site
+    $users = Get-PnPUser
     $userList = $users | ForEach-Object {
         [PSCustomObject]@{
             Nome  = $_.Title
@@ -33,15 +42,12 @@ try {
     Write-Output "Arquivo JSON '05 - SharePointUsuarios_ComEmail.json' criado com sucesso contendo apenas usuários com email."
 }
 catch {
-    Write-Error "Erro ao obter usuários do SharePoint: $_"
+    Write-Error "Erro ao obter informações do site ou usuários do SharePoint: $_"
 }
 
 # Obtenha todos os grupos do site
 try {
-    # Obtenha todos os grupos
     $groups = Get-PnPGroup
-
-    # Crie uma lista para armazenar os dados dos grupos
     $groupList = $groups | ForEach-Object {
         [PSCustomObject]@{
             Nome        = $_.Title
