@@ -17,7 +17,7 @@ Como instalar as dependências:
 Como executar:
 1. Coloque os arquivos CSV no diretório especificado em 'csv_directory'.
 2. Execute o script pelo terminal ou prompt de comando:
-   python create_excel.py
+   python "03 - create_excel.py"
 3. O arquivo Excel será salvo no diretório 'output_directory' com o nome 
    "Butterfly - Gerenciamento de Acessos.xlsx".
 """
@@ -37,6 +37,9 @@ output_file_path = os.path.join(output_directory, "Butterfly - Gerenciamento de 
 if not os.path.exists(output_directory):
     os.makedirs(output_directory)
 
+# Lista para armazenar os dados de Nome e Email sem duplicações
+unique_users = pd.DataFrame(columns=["Nome", "Email"])
+
 # Crie um objeto ExcelWriter para salvar as várias abas
 with pd.ExcelWriter(output_file_path, engine='openpyxl') as writer:
     # Itere sobre cada arquivo CSV no diretório
@@ -50,9 +53,12 @@ with pd.ExcelWriter(output_file_path, engine='openpyxl') as writer:
             if "Login" in df.columns:
                 df = df.drop(columns=["Login"])
 
+            # Adiciona dados únicos de Nome e Email ao DataFrame de usuários únicos
+            unique_users = pd.concat([unique_users, df[["Nome", "Email"]]]).drop_duplicates()
+
             # Extraia o nome do site (sem extensão) para usar como nome da aba
             sheet_name = os.path.splitext(csv_file)[0]
-            table_name = sheet_name.replace(" ", "_")  # Substitua espaços por sublinhados
+            table_name = sheet_name.replace(" ", "_")
 
             # Escreva o DataFrame em uma nova aba no arquivo Excel
             df.to_excel(writer, sheet_name=sheet_name, index=False)
@@ -63,105 +69,66 @@ with pd.ExcelWriter(output_file_path, engine='openpyxl') as writer:
 
             # Defina o intervalo da tabela
             last_row = len(df) + 1  # +1 para incluir o cabeçalho
-            table_range = f"A1:{chr(64 + len(df.columns))}{last_row}"  # Gera o range da tabela (ex: A1:C10)
+            table_range = f"A1:{chr(64 + len(df.columns))}{last_row}"
 
             # Crie a tabela
-            table = Table(displayName=table_name, ref=table_range)  # Use o novo nome da tabela
-
-            # Adicione um estilo à tabela
+            table = Table(displayName=table_name, ref=table_range)
             style = TableStyleInfo(
                 name="TableStyleMedium9", showFirstColumn=False,
                 showLastColumn=False, showRowStripes=True,
                 showColumnStripes=True
             )
             table.tableStyleInfo = style
-
-            # Adicione a tabela à planilha
             worksheet.add_table(table)
 
             print(f"Aba '{sheet_name}' criada com sucesso como tabela.")
 
-# Carregar o arquivo existente
-try:
-    df = pd.read_excel(output_file_path, sheet_name=None, engine='openpyxl')  # Lê todas as planilhas
-except Exception as e:
-    print(f"Erro ao carregar o arquivo: {e}")
+    # Adiciona a aba de usuários únicos
+    unique_users.to_excel(writer, sheet_name="Usuarios Unicos", index=False)
+    worksheet = writer.sheets["Usuarios Unicos"]
+    last_row = len(unique_users) + 1
+    table_range = f"A1:B{last_row}"
+    table = Table(displayName="UsuariosUnicos", ref=table_range)
+    style = TableStyleInfo(name="TableStyleMedium9", showFirstColumn=False, showLastColumn=False,
+                           showRowStripes=True, showColumnStripes=True)
+    table.tableStyleInfo = style
+    worksheet.add_table(table)
 
-# Criar uma lista única de nomes de usuários
-all_users = set()
+    print("Aba 'Usuarios Unicos' criada com sucesso com dados únicos de Nome e Email.")
 
-# Percorre as abas existentes para coletar usuários
-for sheet_name, sheet_data in df.items():
-    if 'Nome' in sheet_data.columns:  # Verifique se a coluna 'Nome' existe
-        users = sheet_data['Nome'].drop_duplicates().tolist()
-        all_users.update(users)
-
-# Criar um DataFrame para a nova aba
-summary_data = {'Nome': list(all_users)}
-
-# Adicionar uma coluna para cada site
-for sheet_name in df.keys():
-    summary_data[sheet_name] = [0] * len(all_users)  # Inicializa com 0
-
-# Preencher a tabela com 1s onde o usuário pertence ao site
-for sheet_name, sheet_data in df.items():
-    if 'Nome' in sheet_data.columns:
-        for user in all_users:
-            if user in sheet_data['Nome'].values:
-                index = summary_data['Nome'].index(user)
-                summary_data[sheet_name][index] = 1  # Marca como pertencente
-
-# Criar um DataFrame com os dados resumidos
-summary_df = pd.DataFrame(summary_data)
-
-# Adicionar o DataFrame à nova aba como tabela
+# Após salvar, agora é seguro ler o arquivo para adicionar a aba de Resumo de Acessos
 with pd.ExcelWriter(output_file_path, engine='openpyxl', mode='a') as writer:
+    all_users = set()
+
+    # Lê o arquivo salvo e cria o resumo de acessos
+    for sheet_name, sheet_data in pd.read_excel(output_file_path, sheet_name=None, engine='openpyxl').items():
+        if 'Nome' in sheet_data.columns:
+            users = sheet_data['Nome'].drop_duplicates().tolist()
+            all_users.update(users)
+
+    summary_data = {'Nome': list(all_users)}
+    for sheet_name in pd.read_excel(output_file_path, sheet_name=None, engine='openpyxl').keys():
+        summary_data[sheet_name] = [0] * len(all_users)
+
+    for sheet_name, sheet_data in pd.read_excel(output_file_path, sheet_name=None, engine='openpyxl').items():
+        if 'Nome' in sheet_data.columns:
+            for user in all_users:
+                if user in sheet_data['Nome'].values:
+                    index = summary_data['Nome'].index(user)
+                    summary_data[sheet_name][index] = 1
+
+    summary_df = pd.DataFrame(summary_data)
     summary_df.to_excel(writer, sheet_name='Resumo de Acessos', index=False)
-
-    # Obter o objeto do workbook e a aba recém-criada
-    workbook = writer.book
     worksheet = writer.sheets['Resumo de Acessos']
-
-    # Definir o intervalo da tabela
-    last_row = len(summary_df) + 1  # +1 para incluir o cabeçalho
-    table_range = f"A1:{chr(64 + len(summary_df.columns))}{last_row}"  # Gera o range da tabela
-
-    # Criar a tabela
+    last_row = len(summary_df) + 1
+    table_range = f"A1:{chr(64 + len(summary_df.columns))}{last_row}"
     table = Table(displayName="ResumoAcessos", ref=table_range)
-
-    # Adicionar um estilo à tabela
     style = TableStyleInfo(
         name="TableStyleMedium9", showFirstColumn=False,
         showLastColumn=False, showRowStripes=True,
         showColumnStripes=True
     )
     table.tableStyleInfo = style
-
-    # Adicionar a tabela à planilha
     worksheet.add_table(table)
 
-    # Mover a aba 'Resumo de Acessos' para a primeira posição
-    workbook.move_sheet(worksheet, offset=-len(workbook.worksheets) + 1)
-
-    # Adicionar formatação condicional
-    # Preenchimento vermelho claro e texto vermelho escuro para 0
-    red_fill = PatternFill(start_color="FFCCCB", end_color="FFCCCB", fill_type="solid")
-    red_font = Font(color="A00000")
-
-    # Preenchimento verde claro e texto verde escuro para 1
-    green_fill = PatternFill(start_color="CCFFCC", end_color="CCFFCC", fill_type="solid")
-    green_font = Font(color="005700")
-
-    # Definir regras de formatação condicional
-    for row in worksheet.iter_rows(min_row=2, min_col=2, max_row=last_row, max_col=len(summary_df.columns)):
-        for cell in row:
-            # Adicionar regra para 0
-            if cell.value == 0:
-                cell.fill = red_fill
-                cell.font = red_font
-            # Adicionar regra para 1
-            elif cell.value == 1:
-                cell.fill = green_fill
-                cell.font = green_font
-
-print("Aba 'Resumo de Acessos' criada com sucesso como tabela e movida para a primeira posição!")
+    print("Aba 'Resumo de Acessos' criada com sucesso e movida para a primeira posição!")
