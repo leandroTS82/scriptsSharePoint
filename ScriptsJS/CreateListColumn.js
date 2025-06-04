@@ -79,34 +79,104 @@ function CreateListColumn(site, listDisplayName, columnTitle, InternalName, colu
 /*
 Exemplos de acionamento do script:
 
-Data/Hora (DateTime)
+// TEXTO
 CreateListColumn(
-  "https://butterflygrowth.sharepoint.com/sites/leandrogrupoteste", // URL do site
-  "list Display Name", // Nome da Lista
-  "Nova Coluna de Data", // Título da coluna
-  "OutraColunaData", // Nome interno da coluna
-  4 // FieldTypeKind para DateTime
+  "https://butterflygrowth.sharepoint.com/sites/soape",
+  "Cronograma de Aprovações",
+  "Data Limite de Aprovação Texto",
+  "DataLimiteAprovacaoTexto",
+  4 // DateTime
 );
 
-Pessoa (People)
 CreateListColumn(
-  "https://butterflygrowth.sharepoint.com/sites/leandrogrupoteste", // URL do site
-  "list Display Name", // Nome da listDisplayName
-  "Nova Coluna de Pessoa", // Título da coluna
-  "OutraColunaPessoa", // Nome interno da coluna
-  20 // FieldTypeKind para Pessoa (Person or Group)
+  "https://butterflygrowth.sharepoint.com/sites/soape",
+  "Cronograma de Aprovações",
+  "Data de Realização da Aprovação Texto",
+  "DataRealizadoAprovacaoTexto",
+  4 // DateTime
 );
 
-Escolha (Choice)
 CreateListColumn(
-  "https://butterflygrowth.sharepoint.com/sites/leandrogrupoteste", // URL do site
-  "list Display Name", // Nome da listDisplayName
-  "Nova Coluna de Escolha", // Título da coluna
-  "OutraColunaEscolha", // Nome interno da coluna
-  6 // FieldTypeKind para Escolha (Choice)
+  "https://butterflygrowth.sharepoint.com/sites/soape",
+  "Cronograma de Aprovações",
+  "Status da Aprovação Texto",
+  "AprovacaoTextoStatus",
+  6 // Choice
 );
 
+CreateListColumn(
+  "https://butterflygrowth.sharepoint.com/sites/soape",
+  "Cronograma de Aprovações",
+  "Aprovador Texto",
+  "AprovadorTexto",
+  20 // Person or Group
+);
 
+// CALENDÁRIO
+CreateListColumn(
+  "https://butterflygrowth.sharepoint.com/sites/soape",
+  "Cronograma de Aprovações",
+  "Data Limite de Aprovação Calendário",
+  "DataLimiteAprovacaoCalendario",
+  4 // DateTime
+);
+
+CreateListColumn(
+  "https://butterflygrowth.sharepoint.com/sites/soape",
+  "Cronograma de Aprovações",
+  "Data de Realização da Aprovação Calendário",
+  "DataRealizadoAprovacaoCalendario",
+  4 // DateTime
+);
+
+CreateListColumn(
+  "https://butterflygrowth.sharepoint.com/sites/soape",
+  "Cronograma de Aprovações",
+  "Status da Aprovação Calendário",
+  "AprovacaoCalendarioStatus",
+  6 // Choice
+);
+
+CreateListColumn(
+  "https://butterflygrowth.sharepoint.com/sites/soape",
+  "Cronograma de Aprovações",
+  "Aprovador Calendário",
+  "AprovadorCalendario",
+  20 // Person or Group
+);
+
+// ARTE
+CreateListColumn(
+  "https://butterflygrowth.sharepoint.com/sites/soape",
+  "Cronograma de Aprovações",
+  "Data Limite de Aprovação Arte",
+  "DataLimiteAprovacaoArte",
+  4 // DateTime
+);
+
+CreateListColumn(
+  "https://butterflygrowth.sharepoint.com/sites/soape",
+  "Cronograma de Aprovações",
+  "Data de Realização da Aprovação Arte",
+  "DataRealizadoAprovacaoArte",
+  4 // DateTime
+);
+
+CreateListColumn(
+  "https://butterflygrowth.sharepoint.com/sites/soape",
+  "Cronograma de Aprovações",
+  "Status da Aprovação Arte",
+  "AprovacaoArteStatus",
+  6 // Choice - No Prazo;Atrasado
+);
+
+CreateListColumn(
+  "https://butterflygrowth.sharepoint.com/sites/soape",
+  "Cronograma de Aprovações",
+  "Aprovador Arte",
+  "AprovadorArte",
+  20 // Person or Group
+);
 
 
 */
