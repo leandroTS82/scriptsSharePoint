@@ -1,50 +1,87 @@
-function CreateListView(site, listTitle, viewTitle, viewFieldsArray, rowLimit = 30) {
-    fetch(site + "/_api/contextinfo", {
+async function UpdateViewFields(site, listTitle, viewId, viewFieldsArray) {
+    const contextResponse = await fetch(site + "/_api/contextinfo", {
         method: "POST",
         headers: {
             "Accept": "application/json;odata=verbose"
         }
-    })
-        .then(res => res.json())
-        .then(data => {
-            const requestDigest = data.d.GetContextWebInformation.FormDigestValue;
+    });
+    const contextData = await contextResponse.json();
+    const requestDigest = contextData.d.GetContextWebInformation.FormDigestValue;
 
-            // Monta o CAML com os campos
-            const camlFields = viewFieldsArray.map(f => `<FieldRef Name='${f}' />`).join("");
+    // Remove todos os campos da View
+    await fetch(`${site}/_api/web/lists/getbytitle('${listTitle}')/views(guid'${viewId}')/ViewFields/removeallviewfields`, {
+        method: "POST",
+        headers: {
+            "Accept": "application/json;odata=verbose",
+            "X-RequestDigest": requestDigest
+        }
+    });
 
-            const body = {
-                "__metadata": { "type": "SP.View" },
-                "Title": viewTitle,
-                "RowLimit": rowLimit,
-                "ViewQuery": `<View><ViewFields>${camlFields}</ViewFields></View>`,
-                "ViewType": "HTML"
-            };
-
-            return fetch(site + "/_api/web/lists/getbytitle('" + listTitle + "')/views", {
+    // Adiciona os campos desejados
+    for (const field of viewFieldsArray) {
+        const addFieldResponse = await fetch(
+            `${site}/_api/web/lists/getbytitle('${listTitle}')/views(guid'${viewId}')/ViewFields/addviewfield('${field}')`,
+            {
                 method: "POST",
                 headers: {
                     "Accept": "application/json;odata=verbose",
-                    "Content-Type": "application/json;odata=verbose",
                     "X-RequestDigest": requestDigest
-                },
-                body: JSON.stringify(body)
-            });
-        })
-        .then(res => {
-            if (res.ok) {
-                console.log("View criada com sucesso!");
-            } else {
-                res.json().then(err => console.error("Erro ao criar a view:", err));
+                }
             }
-        })
-        .catch(err => console.error("Erro:", err));
+        );
+
+        if (!addFieldResponse.ok) {
+            const err = await addFieldResponse.json();
+            console.error(`Erro ao adicionar o campo '${field}':`, err);
+        }
+    }
+
+    console.log("Campos atualizados com sucesso!");
+}
+async function CreateListView(site, listTitle, viewTitle, viewFieldsArray, rowLimit = 30) {
+    try {
+        const contextResponse = await fetch(site + "/_api/contextinfo", {
+            method: "POST",
+            headers: {
+                "Accept": "application/json;odata=verbose"
+            }
+        });
+        const contextData = await contextResponse.json();
+        const requestDigest = contextData.d.GetContextWebInformation.FormDigestValue;
+
+        const createViewBody = {
+            "__metadata": { "type": "SP.View" },
+            "Title": viewTitle,
+            "RowLimit": rowLimit,
+            "ViewType": "HTML"
+        };
+
+        const createViewResponse = await fetch(`${site}/_api/web/lists/getbytitle('${listTitle}')/views`, {
+            method: "POST",
+            headers: {
+                "Accept": "application/json;odata=verbose",
+                "Content-Type": "application/json;odata=verbose",
+                "X-RequestDigest": requestDigest
+            },
+            body: JSON.stringify(createViewBody)
+        });
+
+        const viewData = await createViewResponse.json();
+        const viewId = viewData.d.Id;
+
+        console.log("View criada com sucesso! Atualizando campos...");
+        await UpdateViewFields(site, listTitle, viewId, viewFieldsArray);
+
+    } catch (err) {
+        console.error("Erro geral:", err);
+    }
 }
 /*
 CreateListView(
   "https://butterflygrowth.sharepoint.com/sites/leandrogrupoteste",
   "ListaTeste",
   "MinhaViewPersonalizada",
-  ["Title", "NovaColunaTexto", "OutraColunaTextoChoice"],
+  ["Title", "NovaColunaTexto", "NovaColunaTexto2", "OutraColunaTexto3"],
   100
 );
 
