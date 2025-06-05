@@ -60,5 +60,3 @@ async function GetStringJsonListColumns(site, list) {
   var site = "https://butterflygrowth.sharepoint.com/sites/CasadaVedacao";
  var list = "Cronograma de Aprovações"
   GetStringJsonListColumns(site, list);
-  console.log("considerando o padrão, extraia os campos de Artes, texto e CAlendário na ordem e crie a chamadas das functions para criação das views para o site "+site+" e lista "+list)
-  
