@@ -16,7 +16,7 @@ async function getViews(site, listTitle) {
     return data.d.results;
 }
 
-async function renameView(site, listTitle, viewId, newTitle, requestDigest) {
+async function renameView(site, listTitle, viewId, newTitle, requestDigest, currentTitle) {
     const body = {
         "__metadata": { "type": "SP.View" },
         "Title": newTitle
@@ -38,7 +38,7 @@ async function renameView(site, listTitle, viewId, newTitle, requestDigest) {
         const errorData = await response.json();
         console.error(`Erro ao renomear a view:`, errorData);
     } else {
-        console.log(`View renomeada para '${newTitle}' com sucesso!`);
+        console.log(`View renomeada com sucesso! Site: ${site} | Lista: ${listTitle} | Título atual: '${currentTitle}' | Novo título: '${newTitle}'`);
     }
 }
 
@@ -50,7 +50,7 @@ async function updateViewTitles(config) {
     for (const viewMap of Views) {
         const view = views.find(v => v.Title === viewMap.TituloViewAtual);
         if (view) {
-            await renameView(site, listTitle, view.Id, viewMap.TituloViewAlterado, requestDigest);
+            await renameView(site, listTitle, view.Id, viewMap.TituloViewAlterado, requestDigest, viewMap.TituloViewAtual);
         } else {
             console.warn(`View com título '${viewMap.TituloViewAtual}' não encontrada.`);
         }
@@ -59,12 +59,13 @@ async function updateViewTitles(config) {
 
 // Exemplo de uso:
 const config = {
-    "site": "https://butterflygrowth.sharepoint.com/sites/CasadaVedacao",
+    "site": "https://butterflygrowth.sharepoint.com/sites/Focus",
     "lista": "Cronograma de Aprovações",
     "Views": [
         { "TituloViewAtual": "03_Calendario", "TituloViewAlterado": "01_Calendario" },
-        { "TituloViewAtual": "02_Texto", "TituloViewAlterado": "02_Texto" }
-        { "TituloViewAtual": "01_Arte", "TituloViewAlterado": "03_Arte" }
+        //{ "TituloViewAtual": "02_Texto", "TituloViewAlterado": "02_Texto" },
+        { "TituloViewAtual": "01_Arte", "TituloViewAlterado": "03_Artes" },
+        { "TituloViewAtual": "01_Artes", "TituloViewAlterado": "03_Artes" }
     ]
 };
 
