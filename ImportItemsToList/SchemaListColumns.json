@@ -1,0 +1,225 @@
+{
+  "listId": "63ecc7c5-2b1a-4f65-9132-21242cdcd123",
+  "Colunas": [
+    {
+      "Title": "Título",
+      "InternalName": "Title",
+      "FieldTypeKind": 2
+    },
+    {
+      "Title": "Título",
+      "InternalName": "LinkTitle",
+      "FieldTypeKind": 12
+    },
+    {
+      "Title": "Pressione Delete para excluir o ícone.",
+      "InternalName": "_ColorTag",
+      "FieldTypeKind": 2
+    },
+    {
+      "Title": "ID de Ativo de Conformidade",
+      "InternalName": "ComplianceAssetId",
+      "FieldTypeKind": 2
+    },
+    {
+      "Title": "Data Início",
+      "InternalName": "DataIn_x00ed_cio",
+      "FieldTypeKind": 4
+    },
+    {
+      "Title": "Data Fim",
+      "InternalName": "DataFim",
+      "FieldTypeKind": 4
+    },
+    {
+      "Title": "Custo/Conv",
+      "InternalName": "Custo_x002f_Conv",
+      "FieldTypeKind": 10
+    },
+    {
+      "Title": "Verba",
+      "InternalName": "Verba",
+      "FieldTypeKind": 10
+    },
+    {
+      "Title": "CPC",
+      "InternalName": "CPC",
+      "FieldTypeKind": 10
+    },
+    {
+      "Title": "Conversões",
+      "InternalName": "Convers_x00f5_es",
+      "FieldTypeKind": 9
+    },
+    {
+      "Title": "Marca",
+      "InternalName": "Marca",
+      "FieldTypeKind": 6,
+      "Choices": [
+        "Agger",
+        "Tô Segurado"
+      ]
+    },
+    {
+      "Title": "Canal",
+      "InternalName": "Canal",
+      "FieldTypeKind": 6,
+      "Choices": [
+        "Google Ads",
+        "Bing Ads",
+        "Tiktok Ads",
+        "Meta Ads"
+      ]
+    },
+    {
+      "Title": "Leads",
+      "InternalName": "Leads",
+      "FieldTypeKind": 9
+    },
+    {
+      "Title": "Modificações Realizadas",
+      "InternalName": "Modifica_x00e7__x00f5_esRealizad",
+      "FieldTypeKind": 3
+    },
+    {
+      "Title": "Aprendizado",
+      "InternalName": "Aprendizado",
+      "FieldTypeKind": 3
+    },
+    {
+      "Title": "Avaliação",
+      "InternalName": "Avalia_x00e7__x00e3_o",
+      "FieldTypeKind": 6,
+      "Choices": [
+        "Ruim",
+        "Neutro",
+        "Bom"
+      ]
+    },
+    {
+      "Title": "CTR",
+      "InternalName": "CTR",
+      "FieldTypeKind": 9
+    },
+    {
+      "Title": "CPL",
+      "InternalName": "CPL",
+      "FieldTypeKind": 10
+    },
+    {
+      "Title": "Campanha",
+      "InternalName": "Campanha",
+      "FieldTypeKind": 2
+    },
+    {
+      "Title": "Qtde de Conversões",
+      "InternalName": "QtdedeConvers_x00f5_es",
+      "FieldTypeKind": 9
+    },
+    {
+      "Title": "CPM",
+      "InternalName": "CPM",
+      "FieldTypeKind": 10
+    },
+    {
+      "Title": "ID",
+      "InternalName": "ID",
+      "FieldTypeKind": 5
+    },
+    {
+      "Title": "Tipo de Conteúdo",
+      "InternalName": "ContentType",
+      "FieldTypeKind": 12
+    },
+    {
+      "Title": "Modificado",
+      "InternalName": "Modified",
+      "FieldTypeKind": 4
+    },
+    {
+      "Title": "Criado",
+      "InternalName": "Created",
+      "FieldTypeKind": 4
+    },
+    {
+      "Title": "Criado por",
+      "InternalName": "Author",
+      "FieldTypeKind": 20
+    },
+    {
+      "Title": "Modificado por",
+      "InternalName": "Editor",
+      "FieldTypeKind": 20
+    },
+    {
+      "Title": "Versão",
+      "InternalName": "_UIVersionString",
+      "FieldTypeKind": 2
+    },
+    {
+      "Title": "Anexos",
+      "InternalName": "Attachments",
+      "FieldTypeKind": 19
+    },
+    {
+      "Title": "Editar",
+      "InternalName": "Edit",
+      "FieldTypeKind": 12
+    },
+    {
+      "Title": "Título",
+      "InternalName": "LinkTitleNoMenu",
+      "FieldTypeKind": 12
+    },
+    {
+      "Title": "Tipo",
+      "InternalName": "DocIcon",
+      "FieldTypeKind": 12
+    },
+    {
+      "Title": "Contagem de Itens Filhos",
+      "InternalName": "ItemChildCount",
+      "FieldTypeKind": 7
+    },
+    {
+      "Title": "Contagem de Elementos Filho da Pasta",
+      "InternalName": "FolderChildCount",
+      "FieldTypeKind": 7
+    },
+    {
+      "Title": "Configuração do rótulo",
+      "InternalName": "_ComplianceFlags",
+      "FieldTypeKind": 7
+    },
+    {
+      "Title": "Rótulo de retenção",
+      "InternalName": "_ComplianceTag",
+      "FieldTypeKind": 7
+    },
+    {
+      "Title": "Rótulo de retenção Aplicado",
+      "InternalName": "_ComplianceTagWrittenTime",
+      "FieldTypeKind": 7
+    },
+    {
+      "Title": "Rótulo aplicado por",
+      "InternalName": "_ComplianceTagUserId",
+      "FieldTypeKind": 7
+    },
+    {
+      "Title": "O item é um Registro",
+      "InternalName": "_IsRecord",
+      "FieldTypeKind": 12
+    },
+    {
+      "Title": "Aplicativo Criado por",
+      "InternalName": "AppAuthor",
+      "FieldTypeKind": 7
+    },
+    {
+      "Title": "Aplicativo Modificado por",
+      "InternalName": "AppEditor",
+      "FieldTypeKind": 7
+    }
+  ]
+}

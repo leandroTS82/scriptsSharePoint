@@ -1,0 +1,118 @@
+# Importar módulos necessários
+Import-Module PnP.PowerShell -ErrorAction Stop
+Import-Module ImportExcel -ErrorAction Stop
+
+# Parâmetros
+$siteUrl = "https://butterflygrowth.sharepoint.com/sites/leandrogrupoteste"
+$listName = "Diário de Bordo"
+$excelFilePath = ".\Excel\DiarioBordo.xlsx"
+$schemaFilePath = ".\SchemaListColumns.json"
+$ignoreFilePath = ".\IgnoreColumns.json"
+
+# Conectar ao SharePoint
+try {
+    Connect-PnPOnline -Url $siteUrl -UseWebLogin
+    Write-Host "Conectado com sucesso ao SharePoint em $siteUrl" -ForegroundColor Green
+} catch {
+    Write-Error "Erro ao conectar ao SharePoint: $_"
+    exit
+}
+
+# Verificar se a lista existe
+$listExists = Get-PnPList -Identity $listName -ErrorAction SilentlyContinue
+if (-not $listExists) {
+    Write-Error "A lista '$listName' não foi encontrada no site $siteUrl"
+    Disconnect-PnPOnline
+    exit
+}
+
+# Carregar colunas a serem ignoradas
+try {
+    $ignoredColumns = Get-Content $ignoreFilePath | ConvertFrom-Json
+    Write-Host "Arquivo de colunas ignoradas carregado com sucesso." -ForegroundColor Green
+} catch {
+    Write-Error "Erro ao carregar o arquivo IgnoreColumns.json: $_"
+    Disconnect-PnPOnline
+    exit
+}
+
+# Carregar o schema das colunas da lista
+try {
+    $schema = Get-Content $schemaFilePath | ConvertFrom-Json
+    $mappedColumns = $schema.Colunas | Where-Object {
+        $_.InternalName -and $_.Title -and ($_.InternalName -notin $ignoredColumns)
+    }
+    Write-Host "Schema de colunas carregado. Total de colunas consideradas: $($mappedColumns.Count)" -ForegroundColor Green
+} catch {
+    Write-Error "Erro ao carregar o arquivo SchemaListColumns.json: $_"
+    Disconnect-PnPOnline
+    exit
+}
+
+# Ler os dados da planilha Excel
+try {
+    $sheetData = Import-Excel -Path $excelFilePath
+    Write-Host "Planilha Excel carregada com sucesso. Total de linhas: $($sheetData.Count)" -ForegroundColor Green
+} catch {
+    Write-Error "Erro ao carregar a planilha Excel: $_"
+    Disconnect-PnPOnline
+    exit
+}
+
+# Inserir os dados na lista do SharePoint
+$itemCount = 0
+foreach ($row in $sheetData) {
+    $newItem = @{}
+
+    foreach ($column in $mappedColumns) {
+        $excelValue = $row.($column.Title)
+
+        switch ($column.FieldTypeKind) {
+            4 { # DateTime
+                if ($excelValue -and ($excelValue -is [datetime] -or ([datetime]::TryParse($excelValue, [ref]$null)))) {
+                    $newItem[$column.InternalName] = [datetime]$excelValue
+                } else {
+                    Write-Warning "Coluna '$($column.Title)' esperava tipo [datetime], mas recebeu: '$excelValue'"
+                    $newItem[$column.InternalName] = $null
+                }
+            }
+            6 { # Choice
+                $newItem[$column.InternalName] = if ($excelValue) { "$excelValue" } else { $null }
+            }
+            9 { # Number
+                $newItem[$column.InternalName] = if ($excelValue -match '^\d+([.,]\d+)?$') { [double]$excelValue } else {
+                    Write-Warning "Coluna '$($column.Title)' esperava tipo [number], mas recebeu: '$excelValue'"
+                    $null
+                }
+            }
+            10 { # Currency
+                $newItem[$column.InternalName] = if ($excelValue -match '^\d+([.,]\d+)?$') { [decimal]$excelValue } else {
+                    Write-Warning "Coluna '$($column.Title)' esperava tipo [currency], mas recebeu: '$excelValue'"
+                    $null
+                }
+            }
+            2 { # Text
+                $newItem[$column.InternalName] = if ($excelValue) { "$excelValue" } else { $null }
+            }
+            3 { # Note
+                $newItem[$column.InternalName] = if ($excelValue) { "$excelValue" } else { $null }
+            }
+            default {
+                Write-Host "Campo ignorado (não mapeado ou não suportado): $($column.InternalName)" -ForegroundColor Yellow
+            }
+        }
+    }
+
+    try {
+        Add-PnPListItem -List $listName -Values $newItem
+        $itemCount++
+        Write-Host "Item $itemCount importado com sucesso." -ForegroundColor Cyan
+    } catch {
+        Write-Warning "Erro ao importar o item da linha $($itemCount + 1): $_"
+    }
+}
+
+Write-Host "Importação finalizada. Total de itens importados: $itemCount" -ForegroundColor Green
+
+# Desconectar
+Disconnect-PnPOnline
