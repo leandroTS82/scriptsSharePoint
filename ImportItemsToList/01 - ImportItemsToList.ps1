@@ -2,11 +2,37 @@
 Import-Module PnP.PowerShell -ErrorAction Stop
 Import-Module ImportExcel -ErrorAction Stop
 
-# Parâmetros
-$siteUrl = "https://butterflygrowth.sharepoint.com/sites/leandrogrupoteste"
-$excelFilePath = ".\Excel\DiarioBordo.xlsx"
+# Caminhos fixos
+$sitesFilePath = ".\Sites.json"
 $schemaFilePath = ".\SchemaListColumns.json"
 $ignoreFilePath = ".\IgnoreColumns.json"
+$excelFilePath = ".\Excel\DiarioBordo.xlsx"
+
+# Selecionar site interativamente
+try {
+    $sites = Get-Content $sitesFilePath | ConvertFrom-Json
+    if (-not $sites) {
+        Write-Error "Nenhum site encontrado no arquivo Sites.json"
+        exit
+    }
+
+    Write-Host "`nSelecione o site SharePoint para importar os dados:`n" -ForegroundColor Cyan
+    for ($i = 0; $i -lt $sites.Count; $i++) {
+        Write-Host "[$i] $($sites[$i].name)"
+    }
+
+    $selectedIndex = Read-Host "`nDigite o número correspondente"
+    if ($selectedIndex -notmatch '^\d+$' -or $selectedIndex -ge $sites.Count) {
+        Write-Error "Seleção inválida. Encerrando script."
+        exit
+    }
+
+    $siteUrl = $sites[$selectedIndex].url
+    Write-Host "Site selecionado: $($sites[$selectedIndex].name) - $siteUrl" -ForegroundColor Green
+} catch {
+    Write-Error "Erro ao carregar ou interpretar o arquivo Sites.json: $_"
+    exit
+}
 
 # Conectar ao SharePoint
 try {
@@ -27,7 +53,7 @@ try {
     exit
 }
 
-# Carregar o schema das colunas da lista
+# Carregar schema com listId e colunas
 try {
     $schema = Get-Content $schemaFilePath | ConvertFrom-Json
     $listId = $schema.listId
