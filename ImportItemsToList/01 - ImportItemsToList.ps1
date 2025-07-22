@@ -4,7 +4,6 @@ Import-Module ImportExcel -ErrorAction Stop
 
 # Parâmetros
 $siteUrl = "https://butterflygrowth.sharepoint.com/sites/leandrogrupoteste"
-$listName = "Diário de Bordo"
 $excelFilePath = ".\Excel\DiarioBordo.xlsx"
 $schemaFilePath = ".\SchemaListColumns.json"
 $ignoreFilePath = ".\IgnoreColumns.json"
@@ -15,14 +14,6 @@ try {
     Write-Host "Conectado com sucesso ao SharePoint em $siteUrl" -ForegroundColor Green
 } catch {
     Write-Error "Erro ao conectar ao SharePoint: $_"
-    exit
-}
-
-# Verificar se a lista existe
-$listExists = Get-PnPList -Identity $listName -ErrorAction SilentlyContinue
-if (-not $listExists) {
-    Write-Error "A lista '$listName' não foi encontrada no site $siteUrl"
-    Disconnect-PnPOnline
     exit
 }
 
@@ -39,12 +30,21 @@ try {
 # Carregar o schema das colunas da lista
 try {
     $schema = Get-Content $schemaFilePath | ConvertFrom-Json
+    $listId = $schema.listId
     $mappedColumns = $schema.Colunas | Where-Object {
         $_.InternalName -and $_.Title -and ($_.InternalName -notin $ignoredColumns)
     }
     Write-Host "Schema de colunas carregado. Total de colunas consideradas: $($mappedColumns.Count)" -ForegroundColor Green
 } catch {
     Write-Error "Erro ao carregar o arquivo SchemaListColumns.json: $_"
+    Disconnect-PnPOnline
+    exit
+}
+
+# Verificar se a lista existe
+$listExists = Get-PnPList -Identity $listId -ErrorAction SilentlyContinue
+if (-not $listExists) {
+    Write-Error "A lista com ID '$listId' não foi encontrada no site $siteUrl"
     Disconnect-PnPOnline
     exit
 }
@@ -68,7 +68,7 @@ foreach ($row in $sheetData) {
         $excelValue = $row.($column.Title)
 
         switch ($column.FieldTypeKind) {
-            4 { # DateTime
+            4 {
                 if ($excelValue -and ($excelValue -is [datetime] -or ([datetime]::TryParse($excelValue, [ref]$null)))) {
                     $newItem[$column.InternalName] = [datetime]$excelValue
                 } else {
@@ -76,27 +76,21 @@ foreach ($row in $sheetData) {
                     $newItem[$column.InternalName] = $null
                 }
             }
-            6 { # Choice
-                $newItem[$column.InternalName] = if ($excelValue) { "$excelValue" } else { $null }
-            }
-            9 { # Number
+            6 { $newItem[$column.InternalName] = if ($excelValue) { "$excelValue" } else { $null } }
+            9 {
                 $newItem[$column.InternalName] = if ($excelValue -match '^\d+([.,]\d+)?$') { [double]$excelValue } else {
                     Write-Warning "Coluna '$($column.Title)' esperava tipo [number], mas recebeu: '$excelValue'"
                     $null
                 }
             }
-            10 { # Currency
+            10 {
                 $newItem[$column.InternalName] = if ($excelValue -match '^\d+([.,]\d+)?$') { [decimal]$excelValue } else {
                     Write-Warning "Coluna '$($column.Title)' esperava tipo [currency], mas recebeu: '$excelValue'"
                     $null
                 }
             }
-            2 { # Text
-                $newItem[$column.InternalName] = if ($excelValue) { "$excelValue" } else { $null }
-            }
-            3 { # Note
-                $newItem[$column.InternalName] = if ($excelValue) { "$excelValue" } else { $null }
-            }
+            2 { $newItem[$column.InternalName] = if ($excelValue) { "$excelValue" } else { $null } }
+            3 { $newItem[$column.InternalName] = if ($excelValue) { "$excelValue" } else { $null } }
             default {
                 Write-Host "Campo ignorado (não mapeado ou não suportado): $($column.InternalName)" -ForegroundColor Yellow
             }
@@ -104,7 +98,7 @@ foreach ($row in $sheetData) {
     }
 
     try {
-        Add-PnPListItem -List $listName -Values $newItem
+        Add-PnPListItem -List $listId -Values $newItem
         $itemCount++
         Write-Host "Item $itemCount importado com sucesso." -ForegroundColor Cyan
     } catch {
