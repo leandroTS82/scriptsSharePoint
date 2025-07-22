@@ -3,9 +3,9 @@ Import-Module PnP.PowerShell -ErrorAction Stop
 Import-Module ImportExcel -ErrorAction Stop
 
 # Caminhos fixos
-$sitesFilePath = ".\Sites.json"
+$sitesFilePath = ".\Config\Sites.json"
 $schemaFilePath = ".\SchemaListColumns.json"
-$ignoreFilePath = ".\IgnoreColumns.json"
+$ignoreFilePath = ".\Config\IgnoreColumns.json"
 $excelFilePath = ".\Excel\DiarioBordo.xlsx"
 
 # Selecionar site interativamente
