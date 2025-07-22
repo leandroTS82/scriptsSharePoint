@@ -2,7 +2,7 @@
 Import-Module PnP.PowerShell
 
 # Parâmetros de Conexão
-$siteUrl = "https://ltsconsultoria.sharepoint.com"
+$siteUrl = "https://butterflygrowth.sharepoint.com/"
 
 # Conectar ao SharePoint Online usando autenticação interativa
 try {
