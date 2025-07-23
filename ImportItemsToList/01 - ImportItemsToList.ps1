@@ -2,13 +2,13 @@
 Import-Module PnP.PowerShell -ErrorAction Stop
 Import-Module ImportExcel -ErrorAction Stop
 
-# Caminhos fixos
+# Caminhos dos arquivos
 $sitesFilePath = ".\Config\Sites.json"
-$schemaFilePath = ".\SchemaListColumns.json"
 $ignoreFilePath = ".\Config\IgnoreColumns.json"
 $excelFilePath = ".\Excel\DiarioBordo.xlsx"
+$schemaFilePath = ".\SchemaListColumns.json"
 
-# Selecionar site interativamente
+# Etapa 1 - Seleção do site
 try {
     $sites = Get-Content $sitesFilePath | ConvertFrom-Json
     if (-not $sites) {
@@ -34,7 +34,7 @@ try {
     exit
 }
 
-# Conectar ao SharePoint
+# Etapa 2 - Conectar ao site
 try {
     Connect-PnPOnline -Url $siteUrl -UseWebLogin
     Write-Host "Conectado com sucesso ao SharePoint em $siteUrl" -ForegroundColor Green
@@ -43,39 +43,53 @@ try {
     exit
 }
 
-# Carregar colunas a serem ignoradas
+# Etapa 3 - Carregar listas do site
 try {
-    $ignoredColumns = Get-Content $ignoreFilePath | ConvertFrom-Json
-    Write-Host "Arquivo de colunas ignoradas carregado com sucesso." -ForegroundColor Green
+    $lists = Get-PnPList | Where-Object { -not $_.Hidden -and $_.BaseTemplate -eq 100 }
+    if (-not $lists) {
+        Write-Error "Nenhuma lista visível do tipo padrão encontrada no site."
+        Disconnect-PnPOnline
+        exit
+    }
+
+    Write-Host "`nSelecione a lista para importar os dados:`n" -ForegroundColor Cyan
+    for ($i = 0; $i -lt $lists.Count; $i++) {
+        Write-Host "[$i] $($lists[$i].Title)"
+    }
+
+    $listIndex = Read-Host "`nDigite o número da lista desejada"
+    if ($listIndex -notmatch '^\d+$' -or $listIndex -ge $lists.Count) {
+        Write-Error "Seleção de lista inválida. Encerrando script."
+        Disconnect-PnPOnline
+        exit
+    }
+
+    $listId = $lists[$listIndex].Id
+    $listName = $lists[$listIndex].Title
+    Write-Host "Lista selecionada: $listName - ID: $listId" -ForegroundColor Green
 } catch {
-    Write-Error "Erro ao carregar o arquivo IgnoreColumns.json: $_"
+    Write-Error "Erro ao carregar listas do site: $_"
     Disconnect-PnPOnline
     exit
 }
 
-# Carregar schema com listId e colunas
+# Etapa 4 - Carregar arquivos auxiliares
 try {
+    $ignoredColumns = Get-Content $ignoreFilePath | ConvertFrom-Json
+    Write-Host "Arquivo IgnoreColumns.json carregado com sucesso." -ForegroundColor Green
+
     $schema = Get-Content $schemaFilePath | ConvertFrom-Json
-    $listId = $schema.listId
     $mappedColumns = $schema.Colunas | Where-Object {
         $_.InternalName -and $_.Title -and ($_.InternalName -notin $ignoredColumns)
     }
-    Write-Host "Schema de colunas carregado. Total de colunas consideradas: $($mappedColumns.Count)" -ForegroundColor Green
+    Write-Host "SchemaListColumns.json carregado. Total de colunas consideradas: $($mappedColumns.Count)" -ForegroundColor Green
 } catch {
-    Write-Error "Erro ao carregar o arquivo SchemaListColumns.json: $_"
+    Write-Error "Erro ao carregar arquivos JSON auxiliares: $_"
     Disconnect-PnPOnline
     exit
 }
 
-# Verificar se a lista existe
-$listExists = Get-PnPList -Identity $listId -ErrorAction SilentlyContinue
-if (-not $listExists) {
-    Write-Error "A lista com ID '$listId' não foi encontrada no site $siteUrl"
-    Disconnect-PnPOnline
-    exit
-}
-
-# Ler os dados da planilha Excel
+# Etapa 5 - Ler planilha Excel
 try {
     $sheetData = Import-Excel -Path $excelFilePath
     Write-Host "Planilha Excel carregada com sucesso. Total de linhas: $($sheetData.Count)" -ForegroundColor Green
@@ -85,7 +99,7 @@ try {
     exit
 }
 
-# Inserir os dados na lista do SharePoint
+# Etapa 6 - Inserir dados na lista
 $itemCount = 0
 foreach ($row in $sheetData) {
     $newItem = @{}
