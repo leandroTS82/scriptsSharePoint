@@ -5,8 +5,8 @@ Import-Module ImportExcel -ErrorAction Stop
 # Caminhos dos arquivos
 $sitesFilePath = ".\Config\Sites.json"
 $ignoreFilePath = ".\Config\IgnoreColumns.json"
-$excelFilePath = ".\Excel\DiarioBordo.xlsx"
-$schemaFilePath = ".\SchemaListColumns.json"
+$excelFilePath = ".\Excel\ChannelContacts.xlsx"
+$schemaFilePath = ".\Schemas\ChannelContacts_SchemaListColumns.json"
 
 # Etapa 1 - Seleção do site
 try {
@@ -58,12 +58,12 @@ try {
     }
 
     $listIndex = Read-Host "`nDigite o número da lista desejada"
-    if ($listIndex -notmatch '^\d+$' -or $listIndex -ge $lists.Count) {
+    if (-not [int]::TryParse($listIndex, [ref]$null) -or [int]$listIndex -ge $lists.Count) {
         Write-Error "Seleção de lista inválida. Encerrando script."
         Disconnect-PnPOnline
         exit
     }
-
+    $listIndex = [int]$listIndex
     $listId = $lists[$listIndex].Id
     $listName = $lists[$listIndex].Title
     Write-Host "Lista selecionada: $listName - ID: $listId" -ForegroundColor Green
