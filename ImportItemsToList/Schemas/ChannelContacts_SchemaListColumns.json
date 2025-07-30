@@ -56,44 +56,48 @@
       ]
     },
     {
-      "Title": "Mídia Paga",
-      "InternalName": "PaidMedia",
-      "FieldTypeKind": 2
-    },
-    {
-      "Title": "Busca Orgânica",
-      "InternalName": "OrganicSearch",
-      "FieldTypeKind": 2
-    },
-    {
-      "Title": "Mídia Paga (Valor)",
-      "InternalName": "PaidMediaValue",
-      "FieldTypeKind": 9
-    },
-    {
-      "Title": "Busca Orgânica (Valor)",
-      "InternalName": "OrganicSearchValue",
-      "FieldTypeKind": 9
-    },
-    {
-      "Title": "Redes Sociais",
-      "InternalName": "SocialMedia",
-      "FieldTypeKind": 2
-    },
-    {
-      "Title": "Redes Sociais (Valor)",
-      "InternalName": "SocialMediaValue",
-      "FieldTypeKind": 9
-    },
-    {
       "Title": "Período",
       "InternalName": "Period",
       "FieldTypeKind": 6,
       "Choices": [
         "1° quinzena",
-        "2° quinzena",
-        "Mês todo"
+        "2° quinzena"
       ]
+    },
+    {
+      "Title": "Canal",
+      "InternalName": "Channel",
+      "FieldTypeKind": 6,
+      "Choices": [
+        "Desconhecido",
+        "Tráfego Direto",
+        "Mídia Paga",
+        "Busca Orgânica",
+        "E-mail",
+        "Redes Sociais",
+        "Referências",
+        "Outros Canais"
+      ]
+    },
+    {
+      "Title": "Origem",
+      "InternalName": "Source",
+      "FieldTypeKind": 6,
+      "Choices": [
+        "google",
+        "bing",
+        "meta",
+        "outros",
+        "yahoo",
+        "instagram",
+        "linkedin",
+        "Youtube"
+      ]
+    },
+    {
+      "Title": "Valor",
+      "InternalName": "Value",
+      "FieldTypeKind": 9
     },
     {
       "Title": "ID",
